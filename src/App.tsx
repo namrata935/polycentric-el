@@ -4,6 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import OpportunityZones from "./pages/OpportunityZones";
+import BusinessMatcher from "./pages/BusinessMatcher";
+import Livability from "./pages/Livability";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,6 +19,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/opportunity-zones" element={<OpportunityZones />} />
+          <Route path="/business-matcher" element={<BusinessMatcher />} />
+          <Route path="/livability" element={<Livability />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

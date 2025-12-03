@@ -1,0 +1,34 @@
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+
+# Database
+psycopg2-binary
+SQLAlchemy
+geoalchemy2
+
+# Data & Math
+pandas
+numpy
+scikit-learn
+scipy
+
+# Geospatial
+geopandas
+shapely
+pyproj
+
+# Overpass API
+overpy
+
+# NLP + Semantic Search
+sentence-transformers
+nltk
+
+# ML & Recommendation
+scikit-learn
+
+# Utilities
+python-dotenv
+requests
+pydantic-settings

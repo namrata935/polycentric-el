@@ -1,0 +1,17 @@
+hello
+thiss is how u run it 
+pull code
+cd backend
+create venv
+pip install -r requirements.txt
+create .env in backend folder and add this code: (create a db in postgres called polycentric first)
+
+DATABASE_URL=postgresql://postgres:postgres_password@localhost:5432/polycentric
+OVERPASS_URL=https://overpass-api.de/api/interpreter
+
+do python run.py
+python test_db_connection.py
+python test_overpass_api.py
+load data by running load data py files
+check posgtres for 2 tables 
+

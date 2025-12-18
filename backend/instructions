@@ -4,14 +4,16 @@ pull code
 cd backend
 create venv
 pip install -r requirements.txt
-create .env in backend folder and add this code: (create a db in postgres called polycentric first)
+create a db in postgres called polycentric first under my servers in pg admin 4
+create .env in backend folder and add this code: 
 
 DATABASE_URL=postgresql://postgres:postgres_password@localhost:5432/polycentric
 OVERPASS_URL=https://overpass-api.de/api/interpreter
 
+
 do python run.py
 python test_db_connection.py
 python test_overpass_api.py
-load data by running load data py files
-check posgtres for 2 tables 
+load data by running - "python debug_data_loading.py"
+check ur db and see the tables which are created and data should be loaded in them. 
 

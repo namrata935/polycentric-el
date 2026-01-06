@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
@@ -10,6 +11,9 @@ def create_app():
     load_dotenv()
 
     app = Flask(__name__)
+
+    # CORS configuration - allow all origins for development
+    CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
     # Database config
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')

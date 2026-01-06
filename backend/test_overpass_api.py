@@ -7,12 +7,11 @@ from utils.overpass_client import fetch_overpass_data
 
 # Simple test query - just get a few bus stops in Bangalore
 SIMPLE_QUERY = """
-[out:json][timeout:10];
+[out:json][timeout:60];
 (
   node["highway"="bus_stop"](around:5000,12.9716,77.5946);
 );
 out body;
-limit 10;
 """
 
 # Even simpler query - just get one node

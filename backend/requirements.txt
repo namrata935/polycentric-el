@@ -17,6 +17,7 @@ scipy
 geopandas
 shapely
 pyproj
+folium
 
 # Overpass API
 overpy

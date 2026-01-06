@@ -1,16 +1,18 @@
 """
 Zone classification service for aggregating businesses and transit into zones
-and calculating zone scores.
+and identifying opportunity-focused zones for expansion analysis.
 """
+
 import pandas as pd
 import numpy as np
 from sqlalchemy import text
 from app import db
-from app.models import Business, TransitNode
 
 
+# -------------------------------------------------
+# Classification helper
+# -------------------------------------------------
 def classify_zone(score: float, high_cutoff: float, mid_cutoff: float) -> str:
-    """Classify zone based on percentile-based thresholds"""
     if score >= high_cutoff:
         return "Commercial Zone"
     elif score >= mid_cutoff:
@@ -19,17 +21,23 @@ def classify_zone(score: float, high_cutoff: float, mid_cutoff: float) -> str:
         return "Opportunity Zone"
 
 
+# -------------------------------------------------
+# Core logic
+# -------------------------------------------------
 def get_zones_classified():
     """
-    Aggregate businesses and transit nodes into zones and classify them.
-    
+    Aggregate businesses and transit nodes into zones and classify them
+    with an opportunity-aware bias.
+
     Returns:
-        DataFrame with zone data including lat, lon, counts, scores, and classification
+        pandas.DataFrame
     """
-    # Get database connection from SQLAlchemy
+
     engine = db.engine
-    
-    # STEP 1: AGGREGATE BUSINESSES INTO ZONES
+
+    # -------------------------------------------------
+    # STEP 1: AGGREGATE BUSINESSES
+    # -------------------------------------------------
     business_query = text("""
         SELECT
             ROUND(latitude::numeric, 2)  AS zone_lat,
@@ -38,10 +46,11 @@ def get_zones_classified():
         FROM businesses
         GROUP BY zone_lat, zone_lon
     """)
-    
     business_df = pd.read_sql(business_query, engine)
-    
-    # STEP 2: AGGREGATE TRANSIT INTO ZONES
+
+    # -------------------------------------------------
+    # STEP 2: AGGREGATE TRANSIT
+    # -------------------------------------------------
     transit_query = text("""
         SELECT
             ROUND(latitude::numeric, 2)  AS zone_lat,
@@ -50,89 +59,115 @@ def get_zones_classified():
         FROM transit_nodes
         GROUP BY zone_lat, zone_lon
     """)
-    
     transit_df = pd.read_sql(transit_query, engine)
-    
+
+    # -------------------------------------------------
     # STEP 3: MERGE INTO ZONES
+    # -------------------------------------------------
     zones = pd.merge(
         business_df,
         transit_df,
         on=["zone_lat", "zone_lon"],
         how="outer"
     ).fillna(0)
-    
-    # STEP 4: REMOVE ULTRA-SPARSE ZONES (OPTIONAL BUT IMPORTANT)
+
+    # -------------------------------------------------
+    # STEP 4: DROP ULTRA-SPARSE ZONES
+    # -------------------------------------------------
     zones = zones[(zones["business_count"] + zones["transport_count"]) >= 2]
-    
+
+    if zones.empty:
+        return zones
+
+    # -------------------------------------------------
     # STEP 5: POPULATION PROXY
+    # -------------------------------------------------
     zones["population"] = (
         zones["business_count"] * 300 +
         zones["transport_count"] * 500
     )
-    
-    # STEP 6: LOG SCALING (KEY FIX)
+
+    # -------------------------------------------------
+    # STEP 6: LOG SCALING (SKEW FIX)
+    # -------------------------------------------------
     zones["biz_log"] = np.log1p(zones["business_count"])
     zones["trans_log"] = np.log1p(zones["transport_count"])
     zones["pop_log"] = np.log1p(zones["population"])
-    
-    # STEP 7: NORMALIZATION AFTER LOG
-    if len(zones) > 0:
-        zones["biz_score"] = zones["biz_log"] / zones["biz_log"].max() if zones["biz_log"].max() > 0 else 0
-        zones["trans_score"] = zones["trans_log"] / zones["trans_log"].max() if zones["trans_log"].max() > 0 else 0
-        zones["pop_score"] = zones["pop_log"] / zones["pop_log"].max() if zones["pop_log"].max() > 0 else 0
-    else:
-        zones["biz_score"] = 0
-        zones["trans_score"] = 0
-        zones["pop_score"] = 0
-    
-    # STEP 8: WEIGHTED ZONE SCORE (REBALANCED)
-    zones["zone_score"] = (
+
+    # -------------------------------------------------
+    # STEP 7: NORMALIZATION
+    # -------------------------------------------------
+    zones["biz_score"] = zones["biz_log"] / zones["biz_log"].max()
+    zones["trans_score"] = zones["trans_log"] / zones["trans_log"].max()
+    zones["pop_score"] = zones["pop_log"] / zones["pop_log"].max()
+
+    # -------------------------------------------------
+    # STEP 8: BASE ACTIVITY SCORE
+    # -------------------------------------------------
+    zones["base_zone_score"] = (
         0.35 * zones["pop_score"] +
         0.35 * zones["trans_score"] +
         0.30 * zones["biz_score"]
     )
-    
-    # STEP 9: PERCENTILE-BASED CLASSIFICATION (KEY FIX)
-    if len(zones) > 0:
-        high_cutoff = zones["zone_score"].quantile(0.85)
-        mid_cutoff = zones["zone_score"].quantile(0.55)
-        
-        zones["zone_type"] = zones["zone_score"].apply(
-            lambda score: classify_zone(score, high_cutoff, mid_cutoff)
-        )
-    else:
-        zones["zone_type"] = "Opportunity Zone"
-    
-    # Convert to dict for JSON serialization
+
+    # -------------------------------------------------
+    # STEP 9: OPPORTUNITY-AWARE ADJUSTMENTS (KEY PART)
+    # -------------------------------------------------
+
+    # Penalize already saturated business hubs (Tier-1 cores)
+    zones["saturation_penalty"] = zones["biz_score"] ** 2
+
+    # Boost zones with population but low saturation (Tier-2 potential)
+    zones["opportunity_boost"] = (
+        (1 - zones["biz_score"]) *
+        zones["pop_score"]
+    )
+
+    # Final adjusted score
+    zones["adjusted_zone_score"] = (
+        zones["base_zone_score"]
+        - 0.20 * zones["saturation_penalty"]
+        + 0.25 * zones["opportunity_boost"]
+    )
+
+    zones["adjusted_zone_score"] = zones["adjusted_zone_score"].clip(0, 1)
+
+    # -------------------------------------------------
+    # STEP 10: OPPORTUNITY-FOCUSED CLASSIFICATION
+    # -------------------------------------------------
+    high_cutoff = zones["adjusted_zone_score"].quantile(0.90)
+    mid_cutoff  = zones["adjusted_zone_score"].quantile(0.60)
+
+    zones["zone_type"] = zones["adjusted_zone_score"].apply(
+        lambda s: classify_zone(s, high_cutoff, mid_cutoff)
+    )
+
     return zones
 
 
+# -------------------------------------------------
+# JSON API helper
+# -------------------------------------------------
 def get_zones_json():
     """
-    Get zones as JSON-serializable list of dictionaries.
-    
-    Returns:
-        List of zone dictionaries
+    Return zones in JSON-serializable format
     """
-    zones_df = get_zones_classified()
-    
-    # Convert DataFrame to list of dicts
-    zones_list = zones_df.to_dict('records')
-    
-    # Ensure numeric types are JSON serializable
-    for zone in zones_list:
-        zone['zone_lat'] = float(zone['zone_lat'])
-        zone['zone_lon'] = float(zone['zone_lon'])
-        zone['business_count'] = int(zone['business_count'])
-        zone['transport_count'] = int(zone['transport_count'])
-        zone['population'] = int(zone['population'])
-        zone['biz_log'] = float(zone.get('biz_log', 0))
-        zone['trans_log'] = float(zone.get('trans_log', 0))
-        zone['pop_log'] = float(zone.get('pop_log', 0))
-        zone['pop_score'] = float(zone['pop_score'])
-        zone['biz_score'] = float(zone['biz_score'])
-        zone['trans_score'] = float(zone['trans_score'])
-        zone['zone_score'] = float(zone['zone_score'])
-    
-    return zones_list
 
+    zones_df = get_zones_classified()
+    zones_list = zones_df.to_dict("records")
+
+    for z in zones_list:
+        z["zone_lat"] = float(z["zone_lat"])
+        z["zone_lon"] = float(z["zone_lon"])
+        z["business_count"] = int(z["business_count"])
+        z["transport_count"] = int(z["transport_count"])
+        z["population"] = int(z["population"])
+
+        z["biz_score"] = float(z["biz_score"])
+        z["trans_score"] = float(z["trans_score"])
+        z["pop_score"] = float(z["pop_score"])
+
+        z["base_zone_score"] = float(z["base_zone_score"])
+        z["adjusted_zone_score"] = float(z["adjusted_zone_score"])
+
+    return zones_list

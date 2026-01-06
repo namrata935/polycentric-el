@@ -1,293 +1,201 @@
+import React from "react";
 import Navigation from "@/components/Navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Building, ArrowRight } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { MapContainer, TileLayer, Popup, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
-const mockZones = [
-	{
-		id: 1,
-		name: "Zone Alpha - Bangalore",
-		type: "opportunity",
-		color: "bg-red-500",
-		population: 45200,
-		businesses: 320,
-		commute: "28 min",
-		lat: 12.9716,
-		lng: 77.5946,
-	},
-	{
-		id: 2,
-		name: "Zone Beta - Mysore",
-		type: "commercial",
-		color: "bg-blue-500",
-		population: 32100,
-		businesses: 1850,
-		commute: "18 min",
-		lat: 12.2958,
-		lng: 76.6394,
-	},
-	{
-		id: 3,
-		name: "Zone Gamma - Pune Road",
-		type: "balanced",
-		color: "bg-green-500",
-		population: 38500,
-		businesses: 890,
-		commute: "22 min",
-		lat: 13.0827,
-		lng: 77.5979,
-	},
-];
+/* ---------------- TYPES ---------------- */
 
-// Custom marker icon
-const createCustomIcon = (color: string) => {
-	const colorMap: { [key: string]: string } = {
-		"bg-red-500": "#ef4444",
-		"bg-blue-500": "#3b82f6",
-		"bg-green-500": "#22c55e",
-	};
-
-	return L.divIcon({
-		html: `<div style="background-color: ${colorMap[color]}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;"></div>`,
-		iconSize: [30, 30],
-		className: "custom-marker",
-	});
+type Zone = {
+  zone_lat?: number;
+  zone_lon?: number;
+  business_count?: number;
+  transport_count?: number;
+  population?: number;
+  zone_type?: "Commercial Zone" | "Balanced Zone" | "Opportunity Zone";
+  adjusted_zone_score?: number;
 };
 
-const OpportunityZones = () => {
-	const karnatakaCenter = [15.3173, 75.7139]; // Karnataka center
+const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-	return (
-		<div className="min-h-screen bg-background">
-			<Navigation />
+/* ---------------- HELPERS ---------------- */
 
-			<div className="container mx-auto px-6 py-8">
-				{/* Header */}
-				<div className="mb-8 animate-fade-in">
-					<h1 className="font-heading text-4xl font-bold text-foreground mb-2">
-						Opportunity Zone Identification
-					</h1>
-					<p className="text-muted-foreground text-lg">
-						Highlighting population–job imbalances across Karnataka.
-					</p>
-				</div>
-
-				{/* Map Section */}
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-					<Card className="lg:col-span-2 shadow-lg animate-fade-in" style={{ animationDelay: "100ms" }}>
-						<CardContent className="p-6">
-							<div className="relative w-full h-[500px] rounded-lg overflow-hidden border border-border">
-								<MapContainer center={karnatakaCenter as L.LatLngExpression} zoom={9} style={{ height: "100%", width: "100%" }}>
-									<TileLayer
-										url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-										attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-									/>
-									{mockZones.map((zone) => (
-										<Circle
-											key={zone.id}
-											center={[zone.lat, zone.lng]}
-											radius={5000}
-											pathOptions={{
-												color: {
-													"bg-red-500": "#ef4444",
-													"bg-blue-500": "#3b82f6",
-													"bg-green-500": "#22c55e",
-												}[zone.color] || "#000",
-												fillColor: {
-													"bg-red-500": "#ef4444",
-													"bg-blue-500": "#3b82f6",
-													"bg-green-500": "#22c55e",
-												}[zone.color] || "#000",
-												fillOpacity: 0.5,
-												weight: 2,
-											}}
-										>
-											<Popup>
-												<div className="p-3 text-sm">
-													<h3 className="font-semibold mb-1">{zone.name}</h3>
-													<p className="text-xs text-muted-foreground capitalize mb-2">{zone.type} Zone</p>
-													<div className="text-xs space-y-1">
-														<div className="flex justify-between">
-															<span>Population:</span>
-															<span className="font-semibold">{zone.population.toLocaleString()}</span>
-														</div>
-														<div className="flex justify-between">
-															<span>Businesses:</span>
-															<span className="font-semibold">{zone.businesses}</span>
-														</div>
-														<div className="flex justify-between">
-															<span>Avg Commute:</span>
-															<span className="font-semibold">{zone.commute}</span>
-														</div>
-													</div>
-												</div>
-											</Popup>
-										</Circle>
-									))}
-								</MapContainer>
-							</div>
-						</CardContent>
-					</Card>
-
-					{/* Insight Panel */}
-					<Card className="shadow-lg animate-fade-in" style={{ animationDelay: "200ms" }}>
-						<CardHeader>
-							<CardTitle className="font-heading">Key Insights</CardTitle>
-							<CardDescription>Understanding the patterns</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							<div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-								<h4 className="font-heading font-semibold text-sm mb-2 text-red-900">
-									Opportunity Zones
-								</h4>
-								<p className="text-xs text-red-800">
-									High population density with limited job access. These areas may benefit from new
-									commercial hubs.
-								</p>
-							</div>
-
-							<div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-								<h4 className="font-heading font-semibold text-sm mb-2 text-blue-900">
-									Commercial Clusters
-								</h4>
-								<p className="text-xs text-blue-800">
-									Dense business activity with lower residential population. Consider mixed-use
-									development.
-								</p>
-							</div>
-
-							<div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-								<h4 className="font-heading font-semibold text-sm mb-2 text-green-900">
-									Balanced Areas
-								</h4>
-								<p className="text-xs text-green-800">
-									Healthy mix of population and employment opportunities. Maintain current development
-									patterns.
-								</p>
-							</div>
-
-							<div className="pt-4 border-t">
-								<p className="text-xs text-muted-foreground">
-									Analysis based on K-Means clustering of population density, business concentration, and
-									commute patterns.
-								</p>
-							</div>
-						</CardContent>
-					</Card>
-				</div>
-
-				{/* Cluster Summary Cards */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-					{mockZones.map((zone, idx) => (
-						<Card
-							key={zone.id}
-							className="shadow-lg hover:shadow-xl transition-shadow animate-fade-in"
-							style={{ animationDelay: `${300 + idx * 100}ms` }}
-						>
-							<CardHeader>
-								<div className="flex items-center justify-between mb-2">
-									<CardTitle className="font-heading text-lg">{zone.name}</CardTitle>
-									<div className={cn("w-3 h-3 rounded-full", zone.color)} />
-								</div>
-								<CardDescription className="capitalize">{zone.type} Zone</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
-										<Users className="w-4 h-4" />
-										<span>Population</span>
-									</div>
-									<span className="font-semibold">{zone.population.toLocaleString()}</span>
-								</div>
-
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
-										<Building className="w-4 h-4" />
-										<span>Businesses</span>
-									</div>
-									<span className="font-semibold">{zone.businesses.toLocaleString()}</span>
-								</div>
-
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
-										<ArrowRight className="w-4 h-4" />
-										<span>Avg Commute</span>
-									</div>
-									<span className="font-semibold">{zone.commute}</span>
-								</div>
-
-								<div className="pt-3 border-t">
-									<p className="text-xs text-muted-foreground">
-										{zone.type === "opportunity" &&
-											"Potential for commercial development to reduce commute times."}
-										{zone.type === "commercial" &&
-											"Consider residential development to create live-work balance."}
-										{zone.type === "balanced" && "Maintain current mixed-use development approach."}
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-					))}
-				</div>
-
-				{/* Analytics Section */}
-				<Card className="shadow-lg animate-fade-in" style={{ animationDelay: "600ms" }}>
-					<CardHeader>
-						<CardTitle className="font-heading">Zone Distribution</CardTitle>
-						<CardDescription>Overview of cluster categories</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-4">
-							<div>
-								<div className="flex items-center justify-between mb-2">
-									<span className="text-sm font-medium">Opportunity Zones</span>
-									<span className="text-sm font-semibold">35%</span>
-								</div>
-								<div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-									<div className="h-full bg-red-500 rounded-full" style={{ width: "35%" }} />
-								</div>
-							</div>
-
-							<div>
-								<div className="flex items-center justify-between mb-2">
-									<span className="text-sm font-medium">Commercial Dense</span>
-									<span className="text-sm font-semibold">25%</span>
-								</div>
-								<div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-									<div className="h-full bg-blue-500 rounded-full" style={{ width: "25%" }} />
-								</div>
-							</div>
-
-							<div>
-								<div className="flex items-center justify-between mb-2">
-									<span className="text-sm font-medium">Balanced Mixed-Use</span>
-									<span className="text-sm font-semibold">30%</span>
-								</div>
-								<div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-									<div className="h-full bg-green-500 rounded-full" style={{ width: "30%" }} />
-								</div>
-							</div>
-
-							<div>
-								<div className="flex items-center justify-between mb-2">
-									<span className="text-sm font-medium">Emerging Zones</span>
-									<span className="text-sm font-semibold">10%</span>
-								</div>
-								<div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-									<div className="h-full bg-amber rounded-full" style={{ width: "10%" }} />
-								</div>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-		</div>
-	);
+const zoneColor = (zoneType?: string) => {
+  if (zoneType === "Commercial Zone") return "#ef4444"; // red
+  if (zoneType === "Balanced Zone") return "#22c55e";   // green
+  return "#3b82f6";                                     // blue (Opportunity)
 };
 
-const cn = (...classes: (string | undefined)[]) => classes.filter(Boolean).join(" ");
+const karnatakaCenter: L.LatLngExpression = [15.3173, 75.7139];
 
-export default OpportunityZones;
+/* ---------------- API ---------------- */
+
+async function fetchZones(): Promise<Zone[]> {
+  const res = await fetch(`${apiBase}/zones/all`);
+  if (!res.ok) throw new Error("Failed to fetch zones");
+  const data = await res.json();
+  return Array.isArray(data?.zones) ? data.zones : [];
+}
+
+/* ========================================================= */
+/* ===================== MAIN PAGE ========================= */
+/* ========================================================= */
+
+function OpportunityZonesContent() {
+  const { data: zonesData = [], isLoading, error } = useQuery({
+  queryKey: ["zones", "force-refresh"],
+  queryFn: fetchZones,
+})
+
+  /* ---------------- COUNTS (FOR SUMMARY) ---------------- */
+
+  const opportunityCount = zonesData.filter(
+    (z) => z.zone_type === "Opportunity Zone"
+  ).length;
+
+  const balancedCount = zonesData.filter(
+    (z) => z.zone_type === "Balanced Zone"
+  ).length;
+
+  const commercialCount = zonesData.filter(
+    (z) => z.zone_type === "Commercial Zone"
+  ).length;
+
+  /* ---------------- MAP CENTER ---------------- */
+
+  const center =
+    zonesData.length > 0
+      ? [
+          zonesData.reduce((s, z) => s + (z.zone_lat ?? 0), 0) / zonesData.length,
+          zonesData.reduce((s, z) => s + (z.zone_lon ?? 0), 0) / zonesData.length,
+        ]
+      : karnatakaCenter;
+
+  if (isLoading) {
+    return <div className="p-8">Loading zones…</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-red-500">Failed to load zones</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navigation />
+
+      <div className="container mx-auto px-6 py-8">
+        {/* HEADER */}
+        <div className="mb-8">
+          <h1 className="font-heading text-4xl font-bold mb-2">
+            Opportunity Zone Analysis
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Visualizing commercial saturation and future growth potential across Karnataka.
+          </p>
+        </div>
+
+        {/* MAP */}
+        <Card className="shadow-lg mb-8">
+          <CardContent className="p-6">
+            <div className="relative w-full h-[520px] rounded-lg overflow-hidden border">
+              {zonesData.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  No zone data available
+                </div>
+              ) : (
+                <MapContainer
+                  center={center as L.LatLngExpression}
+                  zoom={8}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+                  {zonesData.map((zone, idx) => {
+                    if (
+                      typeof zone.zone_lat !== "number" ||
+                      typeof zone.zone_lon !== "number"
+                    )
+                      return null;
+
+                    return (
+                      <Circle
+                        key={idx}
+                        center={[zone.zone_lat, zone.zone_lon]}
+                        radius={6500}
+                        pathOptions={{
+                          color: zoneColor(zone.zone_type),
+                          fillColor: zoneColor(zone.zone_type),
+                          fillOpacity: 0.55,
+                          weight: 2,
+                        }}
+                      >
+                        <Popup>
+                          <div className="text-sm space-y-1">
+                            <b>{zone.zone_type}</b>
+                            <div>
+                              Score: {(zone.adjusted_zone_score ?? 0).toFixed(2)}
+                            </div>
+                            <div>
+                              Population: {zone.population?.toLocaleString() ?? "—"}
+                            </div>
+                            <div>Businesses: {zone.business_count ?? 0}</div>
+                            <div>Transport: {zone.transport_count ?? 0}</div>
+                          </div>
+                        </Popup>
+                      </Circle>
+                    );
+                  })}
+                </MapContainer>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* SUMMARY */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle>Zone Distribution</CardTitle>
+            <CardDescription>
+              Opportunity-biased classification (future-oriented)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-blue-600">Opportunity Zones</span>
+              <span className="font-semibold">{opportunityCount}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-green-600">Balanced Zones</span>
+              <span className="font-semibold">{balancedCount}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-red-600">Commercial Zones</span>
+              <span className="font-semibold">{commercialCount}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================= */
+/* ===================== EXPORT SAFE ======================= */
+/* ========================================================= */
+
+export default function OpportunityZones() {
+  return (
+    <ErrorBoundary>
+      <OpportunityZonesContent />
+    </ErrorBoundary>
+  );
+}

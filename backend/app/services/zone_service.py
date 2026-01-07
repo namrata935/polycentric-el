@@ -40,9 +40,10 @@ def get_zones_classified():
     # -------------------------------------------------
     business_query = text("""
         SELECT
-            ROUND(latitude::numeric, 2)  AS zone_lat,
-            ROUND(longitude::numeric, 2) AS zone_lon,
-            COUNT(*) AS business_count
+    ROUND(latitude::numeric, 2)  AS zone_lat,
+    ROUND(longitude::numeric, 2) AS zone_lon,
+    COUNT(*) AS business_count,
+    json_agg(raw_tags) AS business_raw_tags
         FROM businesses
         GROUP BY zone_lat, zone_lon
     """)
@@ -169,5 +170,18 @@ def get_zones_json():
 
         z["base_zone_score"] = float(z["base_zone_score"])
         z["adjusted_zone_score"] = float(z["adjusted_zone_score"])
-
+        z["business_raw_tags"] = z.get("business_raw_tags", [])
     return zones_list
+
+def save_zones_to_json(file_path="zones_classified.json"):
+    zones_df = get_zones_classified()
+    zones_json = zones_df.to_dict("records")
+
+    with open(file_path, "w") as f:
+        import json
+        json.dump(zones_json, f, indent=2)
+
+    print(f"[OK] Zones saved to {file_path}")
+
+
+

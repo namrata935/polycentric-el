@@ -40,8 +40,8 @@ def get_zones_classified():
     # -------------------------------------------------
     business_query = text("""
         SELECT
-    ROUND(latitude::numeric, 2)  AS zone_lat,
-    ROUND(longitude::numeric, 2) AS zone_lon,
+    FLOOR(latitude / 0.05) * 0.05  AS zone_lat,
+    FLOOR(longitude / 0.05) * 0.05 AS zone_lon,
     COUNT(*) AS business_count,
     json_agg(raw_tags) AS business_raw_tags
         FROM businesses
@@ -53,12 +53,12 @@ def get_zones_classified():
     # STEP 2: AGGREGATE TRANSIT
     # -------------------------------------------------
     transit_query = text("""
-        SELECT
-            ROUND(latitude::numeric, 2)  AS zone_lat,
-            ROUND(longitude::numeric, 2) AS zone_lon,
+            SELECT
+        FLOOR(latitude / 0.05) * 0.05  AS zone_lat,
+        FLOOR(longitude / 0.05) * 0.05 AS zone_lon,
             COUNT(*) AS transport_count
-        FROM transit_nodes
-        GROUP BY zone_lat, zone_lon
+            FROM transit_nodes
+            GROUP BY zone_lat, zone_lon
     """)
     transit_df = pd.read_sql(transit_query, engine)
 
@@ -172,7 +172,7 @@ def get_zones_json():
         z["adjusted_zone_score"] = float(z["adjusted_zone_score"])
         z["business_raw_tags"] = z.get("business_raw_tags", [])
     return zones_list
-
+    
 def save_zones_to_json(file_path="zones_classified.json"):
     zones_df = get_zones_classified()
     zones_json = zones_df.to_dict("records")

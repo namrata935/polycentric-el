@@ -1,334 +1,337 @@
 import Navigation from "@/components/Navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, TrendingUp, Users, DollarSign, GraduationCap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { MapPinned } from "lucide-react";
 import { useState } from "react";
 
-const zoneProfiles = {
-  "zone-a": {
-    name: "Zone Alpha",
-    workforce: "Mixed skilled labor",
-    skills: ["Manufacturing", "Logistics", "Retail"],
-    income: "Lower-middle income",
-    age: "25-45 years (majority)",
-    gaps: ["Healthcare", "Education", "Tech services"],
-    employment: "62%",
-  },
-  "zone-b": {
-    name: "Zone Beta",
-    workforce: "Highly educated professionals",
-    skills: ["Finance", "Technology", "Creative"],
-    income: "Upper-middle to high income",
-    age: "28-40 years (majority)",
-    gaps: ["Family services", "Recreation", "Retail"],
-    employment: "78%",
-  },
-  "zone-c": {
-    name: "Zone Gamma",
-    workforce: "Young emerging talent",
-    skills: ["Service", "Arts", "Tech startups"],
-    income: "Lower-middle income",
-    age: "22-35 years (majority)",
-    gaps: ["Enterprise offices", "Finance", "Manufacturing"],
-    employment: "68%",
-  },
+/* =========================
+   TYPES
+========================= */
+type Signal = {
+  label: "Demand" | "Workforce" | "Competition" | "Opportunity";
+  value: "High" | "Moderate" | "Low";
 };
 
-const businessRecommendations = {
-  "zone-a": [
-    {
-      name: "MedCare Community Clinic",
-      tagline: "Primary healthcare for growing neighborhoods",
-      fit: "Addresses healthcare gap in area with aging infrastructure and dense population",
-      score: 92,
-      tags: ["Healthcare", "Community", "Essential"],
-    },
-    {
-      name: "SkillBridge Training Center",
-      tagline: "Workforce development & vocational training",
-      fit: "Matches local workforce profile with upskilling opportunities in logistics and tech",
-      score: 88,
-      tags: ["Education", "Workforce", "Growth"],
-    },
-    {
-      name: "Urban Grocery Co-op",
-      tagline: "Fresh, affordable local groceries",
-      fit: "Fills retail gap with income-appropriate pricing for neighborhood demographics",
-      score: 85,
-      tags: ["Retail", "Food", "Local"],
-    },
-    {
-      name: "PackSmart Logistics Hub",
-      tagline: "Last-mile delivery & warehousing",
-      fit: "Leverages existing manufacturing/logistics workforce and infrastructure",
-      score: 82,
-      tags: ["Logistics", "Employment", "Infrastructure"],
-    },
-    {
-      name: "TechFix Repair Services",
-      tagline: "Electronics & appliance repair",
-      fit: "Affordable services matching income levels with job creation potential",
-      score: 79,
-      tags: ["Tech", "Service", "Affordable"],
-    },
-  ],
-  "zone-b": [
-    {
-      name: "Bright Futures Daycare",
-      tagline: "Premium childcare for working families",
-      fit: "Serves dual-income professional households with young children",
-      score: 94,
-      tags: ["Family", "Childcare", "Premium"],
-    },
-    {
-      name: "FitLife Wellness Center",
-      tagline: "Boutique fitness & wellness studio",
-      fit: "Matches affluent demographics seeking premium health and recreation options",
-      score: 90,
-      tags: ["Recreation", "Health", "Lifestyle"],
-    },
-    {
-      name: "Artisan Market Hall",
-      tagline: "Curated retail & dining experience",
-      fit: "Addresses retail gap with upscale shopping aligned to local purchasing power",
-      score: 87,
-      tags: ["Retail", "Dining", "Experience"],
-    },
-    {
-      name: "GreenSpace Coworking",
-      tagline: "Flexible workspace for remote professionals",
-      fit: "Complements high concentration of tech and creative workers in the area",
-      score: 84,
-      tags: ["Workspace", "Tech", "Flexibility"],
-    },
-    {
-      name: "Culinary Collective",
-      tagline: "Farm-to-table restaurant & cafe",
-      fit: "Taps into foodie culture and disposable income of local professionals",
-      score: 81,
-      tags: ["Dining", "Local", "Quality"],
-    },
-  ],
-  "zone-c": [
-    {
-      name: "LaunchPad Startup Incubator",
-      tagline: "Accelerator for early-stage ventures",
-      fit: "Nurtures existing startup ecosystem and young entrepreneurial talent",
-      score: 93,
-      tags: ["Tech", "Startups", "Innovation"],
-    },
-    {
-      name: "Metro Finance Credit Union",
-      tagline: "Community banking & financial literacy",
-      fit: "Addresses finance gap with accessible banking for emerging professionals",
-      score: 89,
-      tags: ["Finance", "Community", "Literacy"],
-    },
-    {
-      name: "Creative Forge Studios",
-      tagline: "Shared workspace for artists & makers",
-      fit: "Supports thriving arts community with affordable studio space",
-      score: 86,
-      tags: ["Arts", "Creative", "Affordable"],
-    },
-    {
-      name: "TechHub Training Campus",
-      tagline: "Coding bootcamps & tech education",
-      fit: "Aligns with tech-savvy demographic and job market demand",
-      score: 83,
-      tags: ["Education", "Tech", "Career"],
-    },
-    {
-      name: "Sustainable Goods Marketplace",
-      tagline: "Eco-friendly retail & services",
-      fit: "Resonates with environmentally-conscious young professional demographic",
-      score: 80,
-      tags: ["Retail", "Sustainable", "Lifestyle"],
-    },
-  ],
+type BackendResult = {
+  zone_id: string | null;
+  zone_code: string | null;
+  zone_label: string | null;
+  zone_type: string;
+  region_name: string | null;
+
+  zone_lat: number;
+  zone_lon: number;
+
+  final_score: number;
+  confidence: string;
+  summary: string;
+  detailed_explanation: string;
+
+  signals: Signal[];
 };
 
-const BusinessMatcher = () => {
-  const [selectedZone, setSelectedZone] = useState<keyof typeof zoneProfiles>("zone-a");
-  
-  const profile = zoneProfiles[selectedZone];
-  const businesses = businessRecommendations[selectedZone];
+/* =========================
+   HELPERS
+========================= */
+function visualScore(score: number) {
+  const min = 0.32;
+  const max = 0.6;
+  const clamped = Math.min(Math.max(score, min), max);
+  return Math.round(60 + ((clamped - min) / (max - min)) * 35);
+}
+
+function zoneBorder(zoneType: string) {
+  if (zoneType.toLowerCase().includes("opportunity")) return "border-blue-500";
+  if (zoneType.toLowerCase().includes("balanced")) return "border-green-500";
+  return "border-red-500";
+}
+
+function barWidth(level: "High" | "Moderate" | "Low") {
+  if (level === "High") return 85;
+  if (level === "Moderate") return 55;
+  return 30;
+}
+
+function barColor(signal: string) {
+  switch (signal) {
+    case "Demand":
+      return "bg-blue-500";
+    case "Workforce":
+      return "bg-green-500";
+    case "Competition":
+      return "bg-red-500";
+    case "Opportunity":
+      return "bg-purple-500";
+    default:
+      return "bg-gray-400";
+  }
+}
+
+/* =========================
+   MAP (EXPANDABLE)
+========================= */
+function ZoneMap({
+  lat,
+  lon,
+  expanded,
+  zoneType,
+}: {
+  lat: number;
+  lon: number;
+  expanded: boolean;
+  zoneType: string;
+}) {
+  const size = expanded ? "640x360" : "260x260";
+  const src = `https://maps.wikimedia.org/img/osm-intl,11,${lat},${lon},${size}.png`;
+
+  return (
+    <div
+      className={`transition-all duration-300 ${
+        expanded ? "w-[640px] h-[360px]" : "w-[260px] h-[260px]"
+      }`}
+    >
+      <img
+        src={src}
+        alt="Zone map"
+        className={`w-full h-full object-cover rounded-lg border-4 ${zoneBorder(
+          zoneType
+        )}`}
+      />
+    </div>
+  );
+}
+
+/* =========================
+   HORIZONTAL COMPARISON
+========================= */
+function HorizontalComparisonChart({
+  title,
+  signal,
+  zones,
+}: {
+  title: string;
+  signal: "Demand" | "Workforce" | "Competition" | "Opportunity";
+  zones: BackendResult[];
+}) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold">{title}</h3>
+
+      <div className="space-y-4">
+        {zones.map((z) => {
+          const level = z.signals.find(
+            (s) => s.label === signal
+          )!.value;
+
+          return (
+            <div key={z.zone_id ?? z.zone_lat} className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">
+                  {z.zone_label ?? "Zone"}
+                </span>
+                <span className="text-muted-foreground">
+                  {level}
+                </span>
+              </div>
+
+              <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${barColor(signal)} transition-all duration-700`}
+                  style={{ width: `${barWidth(level)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-sm text-muted-foreground italic">
+        Higher values indicate stronger alignment for this metric.
+      </p>
+    </div>
+  );
+}
+
+/* =========================
+   MAIN COMPONENT
+========================= */
+export default function BusinessMatcher() {
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<BackendResult[]>([]);
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  const findBestZones = async () => {
+    if (!category || !description) return;
+    setLoading(true);
+    setExpanded(null);
+
+    try {
+      const res = await fetch("http://localhost:8000/semantic-zone-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, description }),
+      });
+      setResults(await res.json());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const topZones = results.slice(0, 4);
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <div className="container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">
+
+      <div className="container mx-auto px-8 py-10 space-y-14">
+        {/* HEADER */}
+        <div>
+          <h1 className="text-5xl font-bold mb-3">
             Business Matching Engine
           </h1>
-          <p className="text-muted-foreground text-lg">
-            Suggesting suitable businesses for each area.
+          <p className="text-lg text-muted-foreground">
+            Semantic + geographic suitability analysis
           </p>
         </div>
 
-        {/* Zone Selector */}
-        <div className="mb-8 animate-fade-in" style={{ animationDelay: "100ms" }}>
-          <label className="block text-sm font-medium mb-2">Select Zone</label>
-          <Select value={selectedZone} onValueChange={(value) => setSelectedZone(value as keyof typeof zoneProfiles)}>
-            <SelectTrigger className="w-full md:w-[300px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="zone-a">Zone Alpha</SelectItem>
-              <SelectItem value="zone-b">Zone Beta</SelectItem>
-              <SelectItem value="zone-c">Zone Gamma</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* INPUT */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">Describe Your Business</CardTitle>
+            <CardDescription>
+              Used to evaluate demand, workforce, and opportunity
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input
+              placeholder="Category (e.g., food, healthcare)"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            />
+            <Input
+              placeholder="Description (e.g., affordable family restaurant)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <Button onClick={findBestZones} disabled={loading}>
+              {loading ? "Analyzing..." : "Find Best Zones"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* ZONE CARDS */}
+        <div className="space-y-10">
+          {topZones.map((r, idx) => {
+            const isOpen = expanded === idx;
+            const score = visualScore(r.final_score);
+
+            return (
+              <Card
+                key={idx}
+                className="shadow-md cursor-pointer hover:shadow-lg"
+                onClick={() => setExpanded(isOpen ? null : idx)}
+              >
+                <CardHeader className="bg-muted/40">
+                  <div className="flex gap-8 items-start">
+                    <ZoneMap
+                      lat={r.zone_lat}
+                      lon={r.zone_lon}
+                      expanded={isOpen}
+                      zoneType={r.zone_type}
+                    />
+
+                    <div className="flex-1">
+                      <CardTitle className="text-2xl flex items-center gap-2">
+                        <MapPinned className="w-5 h-5" />
+                        {r.zone_label ?? "Unnamed Zone"}
+                      </CardTitle>
+
+                      <CardDescription className="text-base mt-1">
+                        {r.region_name} · {r.zone_code} · {r.zone_id}
+                      </CardDescription>
+
+                      <div className="mt-4 italic border-l-4 pl-4 border-teal">
+                        {r.summary}
+                      </div>
+
+                      <div className="mt-4 flex gap-2 flex-wrap">
+                        <Badge variant="outline">{r.zone_type}</Badge>
+                        <Badge variant="outline">
+                          Confidence: {r.confidence}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="text-right w-32">
+                      <div className="text-4xl font-bold text-teal">
+                        {score}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Match Score
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                {isOpen && (
+                  <CardContent className="border-t pt-6">
+                    <p className="text-lg leading-relaxed">
+                      {r.detailed_explanation}
+                    </p>
+                  </CardContent>
+                )}
+              </Card>
+            );
+          })}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Zone Profile */}
-          <Card className="lg:col-span-1 shadow-lg animate-fade-in" style={{ animationDelay: "200ms" }}>
+        {/* COMPARISON SECTION */}
+        {topZones.length > 1 && (
+          <Card className="shadow-xl">
             <CardHeader>
-              <CardTitle className="font-heading">{profile.name} Profile</CardTitle>
-              <CardDescription>Demographics & economic indicators</CardDescription>
+              <CardTitle className="text-3xl">
+                Comparative Zone Analysis
+              </CardTitle>
+              <CardDescription>
+                Side-by-side comparison of suitability metrics
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex items-center gap-2 text-sm font-medium mb-2">
-                  <Users className="w-4 h-4 text-teal" />
-                  <span>Workforce</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{profile.workforce}</p>
-              </div>
 
-              <div>
-                <div className="flex items-center gap-2 text-sm font-medium mb-2">
-                  <GraduationCap className="w-4 h-4 text-teal" />
-                  <span>Key Skills</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {profile.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="text-xs">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 text-sm font-medium mb-2">
-                  <DollarSign className="w-4 h-4 text-teal" />
-                  <span>Income Level</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{profile.income}</p>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 text-sm font-medium mb-2">
-                  <TrendingUp className="w-4 h-4 text-teal" />
-                  <span>Employment Rate</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-teal rounded-full" 
-                      style={{ width: profile.employment }}
-                    />
-                  </div>
-                  <span className="text-sm font-semibold">{profile.employment}</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="text-sm font-medium mb-2">Commercial Gaps</div>
-                <div className="flex flex-wrap gap-1">
-                  {profile.gaps.map((gap) => (
-                    <Badge key={gap} variant="outline" className="text-xs">
-                      {gap}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+            <CardContent className="grid md:grid-cols-2 gap-10">
+              <HorizontalComparisonChart
+                title="Demand Comparison"
+                signal="Demand"
+                zones={topZones}
+              />
+              <HorizontalComparisonChart
+                title="Workforce Comparison"
+                signal="Workforce"
+                zones={topZones}
+              />
+              <HorizontalComparisonChart
+                title="Competition Comparison"
+                signal="Competition"
+                zones={topZones}
+              />
+              <HorizontalComparisonChart
+                title="Opportunity Comparison"
+                signal="Opportunity"
+                zones={topZones}
+              />
             </CardContent>
           </Card>
-
-          {/* Business Recommendations */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="animate-fade-in" style={{ animationDelay: "300ms" }}>
-              <h2 className="font-heading text-2xl font-semibold mb-2">
-                Recommended Businesses
-              </h2>
-              <p className="text-muted-foreground text-sm mb-4">
-                Based on zone profile analysis and commercial gap assessment
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              {businesses.map((business, idx) => (
-                <Card 
-                  key={business.name}
-                  className="shadow-md hover:shadow-lg transition-all animate-fade-in"
-                  style={{ animationDelay: `${400 + idx * 50}ms` }}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Building2 className="w-5 h-5 text-primary" />
-                          <CardTitle className="font-heading text-lg">{business.name}</CardTitle>
-                        </div>
-                        <CardDescription className="text-sm italic">
-                          {business.tagline}
-                        </CardDescription>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-teal">{business.score}</div>
-                        <div className="text-xs text-muted-foreground">Match Score</div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <div className="text-xs font-medium text-muted-foreground mb-1">Why it fits</div>
-                      <p className="text-sm">{business.fit}</p>
-                    </div>
-
-                    <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-teal to-primary rounded-full transition-all duration-500"
-                        style={{ width: `${business.score}%` }}
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {business.tags.map((tag) => (
-                        <Badge key={tag} className="text-xs bg-teal/10 text-teal border-teal/20">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <Card className="shadow-lg animate-fade-in" style={{ animationDelay: "700ms" }}>
-              <CardHeader>
-                <CardTitle className="font-heading text-sm">About This Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">
-                  This section simulates a semantic matching engine that pairs businesses with neighborhoods based on demographic profiles, 
-                  commercial gaps, workforce characteristics, and economic indicators. All data shown is mock data for demonstration purposes.
-                  In a production environment, this would leverage real demographic data, business registries, and machine learning models.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default BusinessMatcher;
+}

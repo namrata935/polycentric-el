@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import OpportunityZones from "./pages/OpportunityZones";
 import BusinessMatcher from "./pages/BusinessMatcher";
 import Livability from "./pages/Livability";
+import RecommendationsDashboard from "./pages/RecommendationsDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/opportunity-zones" element={<OpportunityZones />} />
+          <Route path="/recommendations" element={<RecommendationsDashboard />} />
           <Route path="/business-matcher" element={<BusinessMatcher />} />
           <Route path="/livability" element={<Livability />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

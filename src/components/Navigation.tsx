@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { MapPin, Building2, Heart } from "lucide-react";
+import { MapPin, Building2, Heart, Lightbulb } from "lucide-react";
 
 const Navigation = () => {
   const location = useLocation();
@@ -10,6 +10,11 @@ const Navigation = () => {
       to: "/opportunity-zones",
       label: "Opportunity Zones",
       icon: MapPin,
+    },
+    {
+      to: "/recommendations",
+      label: "Recommendations",
+      icon: Lightbulb,
     },
     {
       to: "/business-matcher",

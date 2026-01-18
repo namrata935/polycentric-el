@@ -12,7 +12,9 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useQuery } from "@tanstack/react-query";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { Info, Eye, EyeOff } from "lucide-react";
+import { Info, Eye, EyeOff, X } from "lucide-react";
+import { useZoneRecommendation } from "@/hooks/use-recommendations";
+import RecommendationCard from "@/components/RecommendationCard";
 
 /* ---------------- TYPES ---------------- */
 
@@ -69,6 +71,16 @@ function OpportunityZonesContent() {
 
   const [showScoreInfo, setShowScoreInfo] = useState(false);
   const [legendCollapsed, setLegendCollapsed] = useState(false);
+  
+  // ✅ NEW: Track selected zone for recommendation sidebar
+  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  const selectedZone = zonesData.find((z, idx) => String(idx) === selectedZoneId);
+  
+  // ✅ NEW: Fetch recommendation for selected zone (only if zone is selected)
+  const { 
+    data: recommendation, 
+    isLoading: recLoading 
+  } = useZoneRecommendation(selectedZone ?? null);
 
   /* ---------------- COUNTS (FOR SUMMARY) ---------------- */
 
@@ -323,8 +335,8 @@ function OpportunityZonesContent() {
             </Card>
           </div>
 
-          {/* MAP + SUMMARY */}
-          <div className="lg:col-span-3 space-y-6">
+          {/* MAP + SUMMARY + RECOMMENDATION SIDEBAR */}
+          <div className={`lg:col-span-3 space-y-6 ${selectedZoneId ? "lg:col-span-2" : ""}`}>
             {/* MAP */}
             <Card className="shadow-lg">
               <CardContent className="p-6">
@@ -350,6 +362,7 @@ function OpportunityZonesContent() {
                             return null;
 
                           const score = zone.adjusted_zone_score ?? 0;
+                          const isSelected = String(idx) === selectedZoneId;
 
                           return (
                             <Circle
@@ -359,8 +372,11 @@ function OpportunityZonesContent() {
                               pathOptions={{
                                 color: zoneColor(zone.zone_type),
                                 fillColor: zoneColor(zone.zone_type),
-                                fillOpacity: 0.55,
-                                weight: 2,
+                                fillOpacity: isSelected ? 0.75 : 0.55,
+                                weight: isSelected ? 3 : 2,
+                              }}
+                              eventHandlers={{
+                                click: () => setSelectedZoneId(String(idx)),
                               }}
                             >
                               <Popup>
@@ -383,6 +399,12 @@ function OpportunityZonesContent() {
                                   </div>
                                   <div>Businesses: {zone.business_count ?? 0}</div>
                                   <div>Transport: {zone.transport_count ?? 0}</div>
+                                  <button
+                                    onClick={() => setSelectedZoneId(String(idx))}
+                                    className="mt-2 w-full px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                  >
+                                    View Recommendation
+                                  </button>
                                 </div>
                               </Popup>
                             </Circle>
@@ -505,6 +527,62 @@ function OpportunityZonesContent() {
             </Card>
           </div>
         </div>
+
+        {/* ✅ NEW: RECOMMENDATION SIDEBAR */}
+        {selectedZone && (
+          <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl overflow-y-auto z-50 lg:relative lg:inset-auto lg:w-auto lg:shadow-lg lg:rounded-lg lg:mt-8">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
+              <h2 className="font-semibold text-lg text-gray-800">
+                Zone Recommendation
+              </h2>
+              <button
+                onClick={() => setSelectedZoneId(null)}
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* Zone Info Header */}
+              <div className="mb-6 pb-4 border-b border-gray-200">
+                <div className="flex items-start gap-3 mb-3">
+                  <div
+                    className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
+                    style={{ backgroundColor: zoneColor(selectedZone.zone_type) }}
+                  ></div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">
+                      {selectedZone.zone_type}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Population: <span className="font-medium">{selectedZone.population?.toLocaleString() ?? "—"}</span>
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Businesses: <span className="font-medium">{selectedZone.business_count ?? 0}</span>
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Transport: <span className="font-medium">{selectedZone.transport_count ?? 0}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recommendation Card */}
+              {recLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : recommendation ? (
+                <RecommendationCard recommendation={recommendation} />
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-sm">Unable to load recommendation</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

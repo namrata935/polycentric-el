@@ -5,8 +5,12 @@ and identifying opportunity-focused zones for expansion analysis.
 
 import pandas as pd
 import numpy as np
+import json
+import os
+from pathlib import Path
 from sqlalchemy import text
 from app import db
+from flask import current_app
 
 
 # -------------------------------------------------
@@ -149,13 +153,80 @@ def get_zones_classified():
 # -------------------------------------------------
 # JSON API helper
 # -------------------------------------------------
+
+def _load_sentiment_data():
+    """
+    Load pre-computed sentiment data from zones_final_sentiment.json
+    
+    Returns:
+        dict: Mapping of (zone_lat, zone_lon) -> sentiment data
+    """
+    sentiment_file = Path(__file__).parent.parent.parent / "sentiment" / "output" / "zones_final_sentiment.json"
+    
+    if not sentiment_file.exists():
+        print(f"⚠ Sentiment file not found: {sentiment_file}")
+        return {}
+    
+    try:
+        with open(sentiment_file, 'r', encoding='utf-8') as f:
+            zones_with_sentiment = json.load(f)
+        
+        # Create lookup dict by zone coordinates
+        sentiment_lookup = {}
+        for zone in zones_with_sentiment:
+            lat = round(float(zone.get('zone_lat', 0)), 5)
+            lon = round(float(zone.get('zone_lon', 0)), 5)
+            final_sentiment = zone.get('final_sentiment')
+            if final_sentiment:
+                sentiment_lookup[(lat, lon)] = final_sentiment
+        
+        print(f"✓ Loaded sentiment for {len(sentiment_lookup)} zones")
+        return sentiment_lookup
+    except Exception as e:
+        print(f"✗ Failed to load sentiment data: {e}")
+        return {}
+
+
+# Cache sentiment data to avoid reloading on every request
+_SENTIMENT_CACHE = None
+
+def _get_sentiment_cache():
+    """Get cached sentiment data or load if not cached"""
+    global _SENTIMENT_CACHE
+    if _SENTIMENT_CACHE is None:
+        _SENTIMENT_CACHE = _load_sentiment_data()
+    return _SENTIMENT_CACHE
+
 def get_zones_json():
     """
-    Return zones in JSON-serializable format
+    Return zones in JSON-serializable format with sentiment data attached
+    """
+    
+    # Ensure we're in app context for database access
+    try:
+        # Try to get current app - if it fails, we need to create context
+        current_app._get_current_object()
+    except RuntimeError:
+        # Not in app context, create one
+        from app import create_app
+        app = create_app()
+        with app.app_context():
+            return _get_zones_json_impl()
+    
+    # Already in app context
+    return _get_zones_json_impl()
+
+
+def _get_zones_json_impl():
+    """
+    Implementation of get_zones_json (internal)
     """
 
     zones_df = get_zones_classified()
     zones_list = zones_df.to_dict("records")
+    
+    # Load sentiment data
+    sentiment_lookup = _get_sentiment_cache()
 
     for z in zones_list:
         z["zone_lat"] = float(z["zone_lat"])
@@ -171,7 +242,29 @@ def get_zones_json():
         z["base_zone_score"] = float(z["base_zone_score"])
         z["adjusted_zone_score"] = float(z["adjusted_zone_score"])
         z["business_raw_tags"] = z.get("business_raw_tags", [])
+        
+        # ✅ Attach sentiment data
+        lat = round(z["zone_lat"], 5)
+        lon = round(z["zone_lon"], 5)
+        if (lat, lon) in sentiment_lookup:
+            z["final_sentiment"] = sentiment_lookup[(lat, lon)]
+        else:
+            # Fallback: provide default sentiment if not found
+            z["final_sentiment"] = {
+                "mean": 0.0,
+                "sources": ["default"],
+                "source_breakdown": {
+                    "default": {
+                        "mean": 0.0,
+                        "std": 0.25,
+                        "positive_ratio": 0.5,
+                        "negative_ratio": 0.5
+                    }
+                }
+            }
+    
     return zones_list
+
     
 def save_zones_to_json(file_path="zones_classified.json"):
     zones_df = get_zones_classified()

@@ -40,3 +40,9 @@ backend/sentiment/output/
 # Python cache
 __pycache__/
 *.pyc
+
+
+node_modules/
+backend/venv/
+.venv/
+.git/ (already ignored usually)

@@ -27,3 +27,16 @@ dist-ssr
 venv/
 /__pycache__/
 *.pyc
+
+# Databases
+*.db
+
+# Large datasets
+backend/sentiment/data/*.csv
+
+# Generated outputs
+backend/sentiment/output/
+
+# Python cache
+__pycache__/
+*.pyc

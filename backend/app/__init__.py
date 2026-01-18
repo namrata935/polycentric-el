@@ -21,6 +21,11 @@ def create_app():
 
     db.init_app(app)
 
+    # Add root route
+    @app.route("/", methods=["GET"])
+    def health():
+        return {"status": "Backend is running", "version": "1.0"}, 200
+
     # Register all blueprints
     from app.routes import register_blueprints
     register_blueprints(app)

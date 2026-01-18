@@ -1,0 +1,25 @@
+{
+  "total_zones_analyzed": 1156,
+  "sentiment_distribution": {
+    "very_positive": 6,
+    "positive": 12,
+    "neutral": 10,
+    "negative": 210,
+    "very_negative": 918
+  },
+  "data_quality_distribution": {
+    "high": 8,
+    "medium": 1148,
+    "low": 0
+  },
+  "source_distribution": {
+    "reddit_bangalore": 8,
+    "accident_safety": 1156,
+    "model_based": 1156
+  },
+  "coverage_statistics": {
+    "real_community_feedback": "0.7%",
+    "safety_data_coverage": "100.0%",
+    "high_quality_data": "0.7%"
+  }
+}

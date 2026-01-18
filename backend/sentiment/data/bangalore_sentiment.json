@@ -1,0 +1,252 @@
+{
+  "Whitefield": {
+    "sentiment": {
+      "positive": 6,
+      "negative": 57,
+      "neutral": 0,
+      "total": 63
+    },
+    "issues": {
+      "roads": 23,
+      "traffic": 13,
+      "metro": 12,
+      "parking": 5,
+      "pollution": 3,
+      "auto": 3,
+      "safety": 2
+    },
+    "top_issues": [
+      "roads",
+      "traffic",
+      "metro"
+    ],
+    "example_complaints": [
+      "Ya.. the people in ORR and Whitefield will miraculously shift to Tumkuru road in 2 years.\n\nEasy peasy lemon squeezy.  I don’t know if this doesn’t trigger your BS meter what will.",
+      "So when they claim \"cut traffic by 40%\", does that mean someone at Silk Board will spend 40% less time in a jam? (So instead of 2hrs from Banashankari to Whitefield, it will be 1h 12m) or you will see",
+      "Why make parallel infra? Why not extend NICE road to connect the eastern side, Sarjapur, Whitefield, Hoskote and north up to Hebbal?"
+    ],
+    "priority": "CRITICAL",
+    "negative_percentage": 90.5
+  },
+  "Koramangala": {
+    "sentiment": {
+      "positive": 4,
+      "negative": 32,
+      "neutral": 0,
+      "total": 36
+    },
+    "issues": {
+      "roads": 13,
+      "traffic": 6,
+      "auto": 4,
+      "parking": 3,
+      "metro": 2,
+      "water": 2
+    },
+    "top_issues": [
+      "roads",
+      "traffic",
+      "auto"
+    ],
+    "example_complaints": [
+      "Snapped this today in Koramangala can’t believe I’m seeing the road this empty 😮\n\nhttps://preview.redd.it/ibszzyhgyfsf1.jpeg?width=900&amp;format=pjpg&amp;auto=webp&amp;s=5d0ac21f6203cd7ceaae82ef584c3",
+      "i wish this happened in Koramangala - Domlur stretch, when i was travelling to the railway station a few days ago. I got around 1 hour late and missed the train.",
+      "One of the first MNCs to set up office in Bangalore was Cisco in the early 2000s. When they started off, they had offices all round Bangalore (MG Road, Cunningham Road, somewhere near Lalbagh, Bannerg"
+    ],
+    "priority": "CRITICAL",
+    "negative_percentage": 88.9
+  },
+  "HSR Layout": {
+    "sentiment": {
+      "positive": 0,
+      "negative": 8,
+      "neutral": 0,
+      "total": 8
+    },
+    "issues": {
+      "traffic": 4,
+      "roads": 4,
+      "metro": 1,
+      "auto": 1
+    },
+    "top_issues": [
+      "traffic",
+      "roads",
+      "metro"
+    ],
+    "example_complaints": [
+      "Today there was no traffic. I reached hsr layout within 1 hour from kr puram rto office . Usually it takes 2 hours for me ...",
+      "The past month has been pretty painful for god knows why. Central bangalore to HSR layout in 20mins. HSR to Ecoworld in 1.5 hrs. Some say horrible traffic jam, maybe the worst in the world, ever.",
+      "There's a railway station in whitefield. Worth checking if there is a train from there to karmelaram railway station (sarjapur road) you can easily reach from there to hsr layout in 20 mins"
+    ],
+    "priority": "CRITICAL",
+    "negative_percentage": 100.0
+  },
+  "Bellandur": {
+    "sentiment": {
+      "positive": 10,
+      "negative": 61,
+      "neutral": 0,
+      "total": 71
+    },
+    "issues": {
+      "roads": 32,
+      "traffic": 19,
+      "metro": 8,
+      "auto": 7,
+      "parking": 4,
+      "safety": 3,
+      "garbage": 2,
+      "pollution": 2,
+      "water": 1
+    },
+    "top_issues": [
+      "roads",
+      "traffic",
+      "metro"
+    ],
+    "example_complaints": [
+      "I took a bus from JP Nagar and reached Bellandur in 30 minutes. That too because the driver kept waiting longer at stops to get more passengers.\n\nWhat a great day.",
+      "IIRC there was supposed to be a CDP road connecting sarjapura road to doddakanneli road along wipro campus. \n\nThere was also a second CDP road down the road near the lake. \n\nThe ecoworld road, gear sc",
+      "I am one of those people who drive a car all for themselves. Here's my circumstance - tell me if I can do something better.\n\nMy house is in Sarjapur Road and I work in outer ring road. Distance from o"
+    ],
+    "priority": "CRITICAL",
+    "negative_percentage": 85.9
+  },
+  "Indiranagar": {
+    "sentiment": {
+      "positive": 8,
+      "negative": 22,
+      "neutral": 0,
+      "total": 30
+    },
+    "issues": {
+      "traffic": 9,
+      "roads": 7,
+      "metro": 3,
+      "safety": 2,
+      "auto": 2,
+      "garbage": 1
+    },
+    "top_issues": [
+      "traffic",
+      "roads",
+      "metro"
+    ],
+    "example_complaints": [
+      "Never enjoyed my ride to Indiranagar from Hulimavu until today",
+      "Fix Bqngalore’s Choke points one stretch at a time. Sign the petition and share it.\n\nhttps://www.change.org/p/petition-to-ease-traffic-congestion-on-inner-ring-road-indiranagar-to-koramangala-t?utm_so",
+      "Simple answer : leave early. I left my home in AECS at 745am, reached Indiranagar by 830. HSR would have been the same. The bottleneck is Marathalli flyover which you can avoid by leaving early.\n\nIf i"
+    ],
+    "priority": "HIGH",
+    "negative_percentage": 73.3
+  },
+  "Marathahalli": {
+    "sentiment": {
+      "positive": 0,
+      "negative": 26,
+      "neutral": 0,
+      "total": 26
+    },
+    "issues": {
+      "roads": 15,
+      "traffic": 8,
+      "parking": 5,
+      "metro": 1,
+      "auto": 1
+    },
+    "top_issues": [
+      "roads",
+      "traffic",
+      "parking"
+    ],
+    "example_complaints": [
+      "This is the ETV back gate right? Literally had to search multiple apps for more than 30 minutes before someone accepted a ride. This was because of the traffic and rains.\n\nMarathahalli, Kadubeesanahal",
+      "Come to Marathahalli macha",
+      "Just start specific autorickshaw routes around IT parks with fixed rates like they have in Kolkata, with overlaps in routes. E.g. Bellandur to Marathahalli, Marathahalli to ITPL, ITPL to Hoodi and so "
+    ],
+    "priority": "CRITICAL",
+    "negative_percentage": 100.0
+  },
+  "Electronic City": {
+    "sentiment": {
+      "positive": 4,
+      "negative": 15,
+      "neutral": 0,
+      "total": 19
+    },
+    "issues": {
+      "roads": 9,
+      "traffic": 3,
+      "metro": 1,
+      "pollution": 1
+    },
+    "top_issues": [
+      "roads",
+      "traffic",
+      "metro"
+    ],
+    "example_complaints": [
+      "I just opened reddit to make a similar post. It took me just 38 mins from electronic city to mahadevapura.",
+      "Apologies in advance, to be the optimistic one here. However, this map is soon going to change. \n\n1. Whitefield metro would be connected by October/Nov\n2. National college to electronic city by early ",
+      "I start at 7 from Vydehi hospital bus stand to Electronic City. I reach by 8:15 - 8:30."
+    ],
+    "priority": "HIGH",
+    "negative_percentage": 78.9
+  },
+  "Jayanagar": {
+    "sentiment": {
+      "positive": 2,
+      "negative": 10,
+      "neutral": 0,
+      "total": 12
+    },
+    "issues": {
+      "roads": 7,
+      "traffic": 5,
+      "parking": 2,
+      "metro": 2,
+      "safety": 2,
+      "garbage": 1,
+      "auto": 1
+    },
+    "top_issues": [
+      "roads",
+      "traffic",
+      "parking"
+    ],
+    "example_complaints": [
+      "Another addition on trivia is that brigade road had quite alot of strip clubs and bars in brittish era.\n\nThe Metro was supposed to go underground on mg road, but didnt go because of st andrews church ",
+      "That's the mosque on Bannerghatta road ... Jayanagar 9 block",
+      "Another addition on trivia is that brigade road had quite alot of strip clubs and bars in brittish era.\n\nThe Metro was supposed to go underground on mg road, but didnt go because of st andrews church "
+    ],
+    "priority": "CRITICAL",
+    "negative_percentage": 83.3
+  },
+  "Yelahanka": {
+    "sentiment": {
+      "positive": 3,
+      "negative": 7,
+      "neutral": 0,
+      "total": 10
+    },
+    "issues": {
+      "roads": 5,
+      "traffic": 4,
+      "parking": 1,
+      "pollution": 1
+    },
+    "top_issues": [
+      "roads",
+      "traffic",
+      "parking"
+    ],
+    "example_complaints": [
+      "Can't they just extend the NICE rd from Tumkur rd to Hosur rd via Yelahanka, instead of going parallel to NICE?",
+      "Yelahanka to tin factory.40 min",
+      "I live in Yelahanka and travelled to Bellandur for work for a year. This is how I did it. Get ready.\n\nLeave early. Leave at 7 AM. There's less traffic, beat it and be early. You can finish your work e"
+    ],
+    "priority": "HIGH",
+    "negative_percentage": 70.0
+  }
+}

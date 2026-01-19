@@ -30,6 +30,9 @@ def create_app():
     from app.routes import register_blueprints
     register_blueprints(app)
 
+    from app.sentiment_api import sentiment_bp  
+    app.register_blueprint(sentiment_bp)  
+
     with app.app_context():
         from app import models  # <-- IMPORTANT: ensure models are imported
         from app.models import TransitNode, Business  # Import all models

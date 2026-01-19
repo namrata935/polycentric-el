@@ -2,126 +2,202 @@ import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Bus, Sparkles, Store, Footprints, DollarSign, Heart, TrendingUp, TrendingDown } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, AlertTriangle, CheckCircle, MapPin, Database, TrendingDown, TrendingUp, Shield, CarFront, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
-const zoneData = {
-  "zone-a": {
-    name: "Zone Alpha",
-    overallScore: 72,
-    scores: {
-      safety: 7.2,
-      transport: 6.8,
-      cleanliness: 7.5,
-      amenities: 6.9,
-      walkability: 7.8,
-      cost: 8.1,
-      satisfaction: 7.0,
-    },
-    sentiment: {
-      positive: 58,
-      neutral: 28,
-      negative: 14,
-    },
-    concerns: ["Traffic congestion", "Garbage collection delays", "Noise levels", "Night-time safety"],
-    positives: ["Access to parks", "Clean streets", "Good metro connectivity", "Family-friendly"],
-    comments: [
-      { user: "AV", time: "2 hours ago", text: "The metro is frequent but the streets are crowded in the mornings.", sentiment: "neutral" },
-      { user: "SK", time: "5 hours ago", text: "Love the new park! Great place for kids.", sentiment: "positive" },
-      { user: "RP", time: "8 hours ago", text: "Garbage pickup has been inconsistent lately.", sentiment: "negative" },
-      { user: "ML", time: "12 hours ago", text: "Walking to work is pleasant with all the trees.", sentiment: "positive" },
-      { user: "TC", time: "1 day ago", text: "Traffic is getting worse during rush hour.", sentiment: "negative" },
-      { user: "JD", time: "1 day ago", text: "Neighborhood feels safe during the day.", sentiment: "positive" },
-      { user: "NS", time: "2 days ago", text: "More street lighting needed near the east side.", sentiment: "negative" },
-      { user: "KW", time: "2 days ago", text: "Local shops have everything we need.", sentiment: "positive" },
-    ],
-  },
-  "zone-b": {
-    name: "Zone Beta",
-    overallScore: 85,
-    scores: {
-      safety: 8.9,
-      transport: 9.1,
-      cleanliness: 8.7,
-      amenities: 9.2,
-      walkability: 8.5,
-      cost: 5.2,
-      satisfaction: 8.8,
-    },
-    sentiment: {
-      positive: 76,
-      neutral: 18,
-      negative: 6,
-    },
-    concerns: ["High cost of living", "Limited parking", "Gentrification concerns", "Crowded cafes"],
-    positives: ["Excellent restaurants", "Safe at night", "Great public transit", "Cultural venues", "Clean and modern"],
-    comments: [
-      { user: "BH", time: "1 hour ago", text: "This neighborhood is pricey but worth every penny.", sentiment: "positive" },
-      { user: "EK", time: "3 hours ago", text: "Can't find parking anywhere on weekends.", sentiment: "negative" },
-      { user: "VT", time: "6 hours ago", text: "The new coffee shops are amazing!", sentiment: "positive" },
-      { user: "LM", time: "10 hours ago", text: "Public transport makes it easy to get anywhere.", sentiment: "positive" },
-      { user: "DN", time: "14 hours ago", text: "Rent is getting out of control.", sentiment: "negative" },
-      { user: "CM", time: "1 day ago", text: "Feel completely safe walking home late.", sentiment: "positive" },
-      { user: "AS", time: "1 day ago", text: "So many great restaurants to choose from.", sentiment: "positive" },
-      { user: "RT", time: "2 days ago", text: "The area is losing its original character.", sentiment: "negative" },
-    ],
-  },
-  "zone-c": {
-    name: "Zone Gamma",
-    overallScore: 68,
-    scores: {
-      safety: 6.5,
-      transport: 7.2,
-      cleanliness: 6.8,
-      amenities: 7.5,
-      walkability: 8.2,
-      cost: 7.9,
-      satisfaction: 6.7,
-    },
-    sentiment: {
-      positive: 52,
-      neutral: 31,
-      negative: 17,
-    },
-    concerns: ["Night safety issues", "Limited healthcare", "Street maintenance", "Noise from bars"],
-    positives: ["Vibrant arts scene", "Affordable living", "Young community", "Walkable streets", "Creative energy"],
-    comments: [
-      { user: "PM", time: "1 hour ago", text: "The arts district is so inspiring!", sentiment: "positive" },
-      { user: "KR", time: "4 hours ago", text: "Can be sketchy after midnight near the station.", sentiment: "negative" },
-      { user: "FW", time: "7 hours ago", text: "Love the creative vibe and affordable rent.", sentiment: "positive" },
-      { user: "MJ", time: "11 hours ago", text: "More streetlights needed in residential areas.", sentiment: "negative" },
-      { user: "TL", time: "15 hours ago", text: "Great mix of small businesses and startups.", sentiment: "positive" },
-      { user: "HS", time: "1 day ago", text: "Weekend nights can get really loud.", sentiment: "negative" },
-      { user: "NC", time: "1 day ago", text: "Everything is within walking distance.", sentiment: "positive" },
-      { user: "DK", time: "2 days ago", text: "Need more medical clinics in the area.", sentiment: "negative" },
-    ],
-  },
-};
+interface ZoneSentiment {
+  zone_id: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  zone_info: {
+    zone_type: string;
+    business_count: number;
+    transport_count: number;
+    population: number;
+    opportunity_score: number;
+  };
+  sentiment_analysis: {
+    sentiment_score: number;
+    sentiment_category: string;
+    data_quality: string;
+    sources_used: string[];
+    primary_source: string;
+    key_insights: {
+      interpretation: string;
+      top_issues: string[];
+      priority_level: string;
+      neighborhood?: string;
+    };
+    source_details: {
+      reddit_bangalore?: {
+        sentiment_score: number;
+        positive_ratio: number;
+        negative_ratio: number;
+        sample_size: number;
+        top_issues: string[];
+      };
+      accident_safety?: {
+        sentiment_score: number;
+        accident_count: number;
+        interpretation: string;
+      };
+      model_based?: {
+        sentiment_score: number;
+        interpretation: string;
+      };
+    };
+  };
+}
 
 const Livability = () => {
-  const [selectedZone, setSelectedZone] = useState<keyof typeof zoneData>("zone-a");
-  
-  const data = zoneData[selectedZone];
+  const [zones, setZones] = useState<ZoneSentiment[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const scoreIcons = {
-    safety: Shield,
-    transport: Bus,
-    cleanliness: Sparkles,
-    amenities: Store,
-    walkability: Footprints,
-    cost: DollarSign,
-    satisfaction: Heart,
+  // Fetch sentiment data from backend
+  useEffect(() => {
+    const fetchSentimentData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:5000/api/sentiment-analysis');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch sentiment data');
+        }
+        
+        const data = await response.json();
+        setZones(data.zones || []);
+        
+        // Set first zone as default
+        if (data.zones && data.zones.length > 0) {
+          setSelectedZone(data.zones[0].zone_id);
+        }
+        
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching sentiment data:', err);
+        setError('Failed to load sentiment data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSentimentData();
+  }, []);
+
+  // Get current zone data
+  const currentZone = zones.find(z => z.zone_id === selectedZone);
+
+  // Helper functions
+  const getSentimentColor = (score: number) => {
+    if (score >= 0.5) return "text-green-600";
+    if (score >= 0.2) return "text-green-500";
+    if (score >= -0.2) return "text-yellow-600";
+    if (score >= -0.5) return "text-orange-600";
+    return "text-red-600";
   };
 
-  const scoreLabels = {
-    safety: "Safety",
-    transport: "Transport",
-    cleanliness: "Cleanliness",
-    amenities: "Amenities",
-    walkability: "Walkability",
-    cost: "Affordability",
-    satisfaction: "Satisfaction",
+  const getSentimentBgColor = (score: number) => {
+    if (score >= 0.5) return "bg-green-500";
+    if (score >= 0.2) return "bg-green-400";
+    if (score >= -0.2) return "bg-yellow-500";
+    if (score >= -0.5) return "bg-orange-500";
+    return "bg-red-500";
   };
+
+  const getPriorityColor = (level: string) => {
+    switch (level) {
+      case "CRITICAL": return "destructive";
+      case "HIGH": return "destructive";
+      case "MEDIUM": return "secondary";
+      case "LOW": return "outline";
+      default: return "outline";
+    }
+  };
+
+  const getDataQualityIcon = (quality: string) => {
+    switch (quality) {
+      case "high": return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case "medium": return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
+      case "low": return <AlertCircle className="w-4 h-4 text-orange-600" />;
+      default: return <AlertCircle className="w-4 h-4" />;
+    }
+  };
+
+  const getSourceLabel = (source: string) => {
+    switch (source) {
+      case "reddit_bangalore": return "Community Feedback";
+      case "accident_safety": return "Safety Data";
+      case "model_based": return "Model Estimate";
+      default: return source;
+    }
+  };
+
+  // Convert sentiment score (-1 to 1) to percentage (0 to 100)
+  const scoreToPercentage = (score: number) => {
+    return Math.round(((score + 1) / 2) * 100);
+  };
+
+  // Calculate positive/negative ratios for display
+  const calculateRatios = (zone: ZoneSentiment) => {
+    const reddit = zone.sentiment_analysis.source_details.reddit_bangalore;
+    if (reddit) {
+      return {
+        positive: Math.round(reddit.positive_ratio * 100),
+        negative: Math.round(reddit.negative_ratio * 100),
+        neutral: Math.round((1 - reddit.positive_ratio - reddit.negative_ratio) * 100)
+      };
+    }
+    
+    // Fallback: estimate from sentiment score
+    const score = zone.sentiment_analysis.sentiment_score;
+    if (score > 0) {
+      const positive = Math.round((score + 1) * 40);
+      return { positive, negative: 100 - positive - 20, neutral: 20 };
+    } else {
+      const negative = Math.round((Math.abs(score)) * 40);
+      return { positive: 100 - negative - 20, negative, neutral: 20 };
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-6 py-24 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Loading sentiment analysis data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !currentZone) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-6 py-24">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+                <p className="text-lg font-semibold mb-2">Unable to Load Data</p>
+                <p className="text-muted-foreground">{error || "No zones available"}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const sentiment = currentZone.sentiment_analysis;
+  const ratios = calculateRatios(currentZone);
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,216 +207,341 @@ const Livability = () => {
         {/* Header */}
         <div className="mb-8 animate-fade-in">
           <h1 className="font-heading text-4xl font-bold text-foreground mb-2">
-            Community Livability & Sentiment Pulse
+            Zone Sentiment Analysis
           </h1>
           <p className="text-muted-foreground text-lg">
-            Understanding resident well-being through local feedback.
+            Multi-source sentiment insights for Karnataka zones
           </p>
         </div>
 
         {/* Zone Selector */}
         <div className="mb-8 animate-fade-in" style={{ animationDelay: "100ms" }}>
           <label className="block text-sm font-medium mb-2">Select Zone</label>
-          <Select value={selectedZone} onValueChange={(value) => setSelectedZone(value as keyof typeof zoneData)}>
-            <SelectTrigger className="w-full md:w-[300px]">
+          <Select value={selectedZone} onValueChange={setSelectedZone}>
+            <SelectTrigger className="w-full md:w-[400px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="zone-a">Zone Alpha</SelectItem>
-              <SelectItem value="zone-b">Zone Beta</SelectItem>
-              <SelectItem value="zone-c">Zone Gamma</SelectItem>
+              {zones.map((zone) => {
+                const neighborhood = zone.sentiment_analysis.key_insights.neighborhood;
+                const zoneType = zone.zone_info.zone_type;
+                const coords = `${zone.location.latitude.toFixed(3)}°N, ${zone.location.longitude.toFixed(3)}°E`;
+                
+                return (
+                  <SelectItem key={zone.zone_id} value={zone.zone_id}>
+                    {neighborhood 
+                      ? `${neighborhood} - ${zoneType} (${coords})`
+                      : `${zoneType} at ${coords}`
+                    }
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Livability Score Hero */}
+        {/* Main Sentiment Score */}
         <Card className="mb-8 shadow-lg animate-fade-in" style={{ animationDelay: "200ms" }}>
           <CardHeader>
-            <CardTitle className="font-heading text-2xl">Overall Livability Score</CardTitle>
-            <CardDescription>Composite measure of neighborhood well-being</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="font-heading text-2xl">Overall Sentiment Score</CardTitle>
+                <CardDescription>
+                  Based on {sentiment.sources_used.length} data source{sentiment.sources_used.length > 1 ? 's' : ''}
+                </CardDescription>
+              </div>
+              <Badge variant={getPriorityColor(sentiment.key_insights.priority_level)}>
+                {sentiment.key_insights.priority_level}
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-8 mb-8">
+            <div className="flex items-center gap-8 mb-6">
+              {/* Score Display */}
               <div className="flex flex-col items-center">
-                <div className="text-6xl font-bold text-teal mb-2">{data.overallScore}</div>
-                <div className="text-sm text-muted-foreground">out of 100</div>
+                <div className={`text-6xl font-bold mb-2 ${getSentimentColor(sentiment.sentiment_score)}`}>
+                  {scoreToPercentage(sentiment.sentiment_score)}
+                </div>
+                <div className="text-sm text-muted-foreground">Sentiment Index</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  ({sentiment.sentiment_score.toFixed(3)})
+                </div>
               </div>
-              
-              <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(data.scores).map(([key, value]) => {
-                  const Icon = scoreIcons[key as keyof typeof scoreIcons];
-                  const label = scoreLabels[key as keyof typeof scoreLabels];
-                  
-                  return (
-                    <div key={key} className="flex flex-col items-center p-4 bg-muted/50 rounded-lg">
-                      <Icon className="w-5 h-5 text-teal mb-2" />
-                      <div className="text-xl font-bold">{value}</div>
-                      <div className="text-xs text-muted-foreground text-center">{label}</div>
+
+              {/* Visual Bar */}
+              <div className="flex-1">
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Sentiment Distribution</span>
+                    <div className="flex items-center gap-2">
+                      {getDataQualityIcon(sentiment.data_quality)}
+                      <span className="text-xs capitalize">{sentiment.data_quality} Confidence</span>
                     </div>
-                  );
-                })}
+                  </div>
+                  <div className="w-full h-8 bg-secondary rounded-full overflow-hidden flex">
+                    <div 
+                      className="bg-green-500 flex items-center justify-center text-xs text-white font-medium" 
+                      style={{ width: `${ratios.positive}%` }}
+                    >
+                      {ratios.positive > 15 && `${ratios.positive}%`}
+                    </div>
+                    <div 
+                      className="bg-yellow-500 flex items-center justify-center text-xs text-white font-medium" 
+                      style={{ width: `${ratios.neutral}%` }}
+                    >
+                      {ratios.neutral > 15 && `${ratios.neutral}%`}
+                    </div>
+                    <div 
+                      className="bg-red-500 flex items-center justify-center text-xs text-white font-medium" 
+                      style={{ width: `${ratios.negative}%` }}
+                    >
+                      {ratios.negative > 15 && `${ratios.negative}%`}
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Positive ({ratios.positive}%)</span>
+                    <span>Neutral ({ratios.neutral}%)</span>
+                    <span>Negative ({ratios.negative}%)</span>
+                  </div>
+                </div>
+
+                {/* Zone Info */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Zone Type</div>
+                    <div className="font-semibold text-sm">{currentZone.zone_info.zone_type}</div>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Population</div>
+                    <div className="font-semibold text-sm">{currentZone.zone_info.population.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Businesses</div>
+                    <div className="font-semibold text-sm">{currentZone.zone_info.business_count}</div>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Opportunity</div>
+                    <div className="font-semibold text-sm">{(currentZone.zone_info.opportunity_score * 100).toFixed(0)}%</div>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Sentiment & Themes */}
-          <div className="space-y-6">
-            {/* Sentiment Breakdown */}
-            <Card className="shadow-lg animate-fade-in" style={{ animationDelay: "300ms" }}>
-              <CardHeader>
-                <CardTitle className="font-heading">Sentiment Breakdown</CardTitle>
-                <CardDescription>Overall community mood</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-medium">Positive</span>
-                    </div>
-                    <span className="text-sm font-semibold">{data.sentiment.positive}%</span>
-                  </div>
-                  <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-green-500 rounded-full" 
-                      style={{ width: `${data.sentiment.positive}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-amber" />
-                      <span className="text-sm font-medium">Neutral</span>
-                    </div>
-                    <span className="text-sm font-semibold">{data.sentiment.neutral}%</span>
-                  </div>
-                  <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-amber rounded-full" 
-                      style={{ width: `${data.sentiment.neutral}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <TrendingDown className="w-4 h-4 text-red-600" />
-                      <span className="text-sm font-medium">Negative</span>
-                    </div>
-                    <span className="text-sm font-semibold">{data.sentiment.negative}%</span>
-                  </div>
-                  <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-red-500 rounded-full" 
-                      style={{ width: `${data.sentiment.negative}%` }}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Key Themes */}
-            <Card className="shadow-lg animate-fade-in" style={{ animationDelay: "400ms" }}>
-              <CardHeader>
-                <CardTitle className="font-heading">Key Themes</CardTitle>
-                <CardDescription>What residents are talking about</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 text-red-700 dark:text-red-400">Top Concerns</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {data.concerns.map((concern) => (
-                      <Badge key={concern} variant="outline" className="border-red-200 text-red-800 dark:text-red-300">
-                        {concern}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <h4 className="text-sm font-semibold mb-3 text-green-700 dark:text-green-400">Top Positives</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {data.positives.map((positive) => (
-                      <Badge key={positive} variant="outline" className="border-green-200 text-green-800 dark:text-green-300">
-                        {positive}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Resident Comments */}
-          <Card className="lg:col-span-2 shadow-lg animate-fade-in" style={{ animationDelay: "500ms" }}>
+          {/* Data Sources */}
+          <Card className="shadow-lg animate-fade-in" style={{ animationDelay: "300ms" }}>
             <CardHeader>
-              <CardTitle className="font-heading">Resident Feedback</CardTitle>
-              <CardDescription>Recent community comments and experiences</CardDescription>
+              <CardTitle className="font-heading flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Data Sources
+              </CardTitle>
+              <CardDescription>Sentiment data origin and quality</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                {data.comments.map((comment, idx) => (
-                  <div 
-                    key={idx}
-                    className="flex gap-3 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm shrink-0">
-                      {comment.user}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">{comment.user}</span>
-                        <span className="text-xs text-muted-foreground">• {comment.time}</span>
-                        <div 
-                          className={cn(
-                            "w-2 h-2 rounded-full ml-auto",
-                            comment.sentiment === "positive" && "bg-green-500",
-                            comment.sentiment === "neutral" && "bg-amber",
-                            comment.sentiment === "negative" && "bg-red-500"
-                          )}
-                        />
+            <CardContent className="space-y-4">
+              {sentiment.sources_used
+                .filter(source => source !== 'accident_safety') // Hide accident data
+                .map((source) => {
+                  const details = sentiment.source_details[source as keyof typeof sentiment.source_details];
+                  const isPrimary = source === sentiment.primary_source;
+                  
+                  return (
+                    <div key={source} className={`p-3 rounded-lg border ${isPrimary ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-sm">{getSourceLabel(source)}</span>
+                        {isPrimary && <Badge variant="outline" className="text-xs">Primary</Badge>}
                       </div>
-                      <p className="text-sm text-foreground">{comment.text}</p>
+                      
+                      {details && (
+                        <div className="space-y-1">
+                          {source === 'reddit_bangalore' && 'sample_size' in details && (
+                            <>
+                              <div className="text-xs text-muted-foreground">
+                                Score: <span className="font-semibold">{details.sentiment_score?.toFixed(3)}</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Sample: <span className="font-semibold">{details.sample_size} posts</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-2">
+                                <span className="font-semibold">Feedback Distribution:</span>
+                                <div className="mt-1">
+                                  Positive: {Math.round(details.positive_ratio * 100)}% | 
+                                  Negative: {Math.round(details.negative_ratio * 100)}%
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          
+                          {source === 'model_based' && 'interpretation' in details && (
+                            <>
+                              <div className="text-xs text-muted-foreground">
+                                Score: <span className="font-semibold">{details.sentiment_score?.toFixed(3)}</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground italic mt-2">
+                                {details.interpretation}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              
+              {/* Data Quality Note */}
+              <div className="pt-3 border-t text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 mb-1">
+                  {getDataQualityIcon(sentiment.data_quality)}
+                  <span className="font-semibold capitalize">{sentiment.data_quality} Quality Data</span>
+                </div>
+                {sentiment.data_quality === 'high' && (
+                  <p className="text-xs">Based on real community feedback from social media</p>
+                )}
+                {sentiment.data_quality === 'medium' && (
+                  <p className="text-xs">Based on urban indicators and model estimates</p>
+                )}
+                {sentiment.data_quality === 'low' && (
+                  <p className="text-xs">Based on zone characteristics and model predictions</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Key Issues */}
+          <Card className="lg:col-span-2 shadow-lg animate-fade-in" style={{ animationDelay: "400ms" }}>
+            <CardHeader>
+              <CardTitle className="font-heading">Key Insights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Top Issues */}
+              {sentiment.key_insights.top_issues.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 text-red-700 dark:text-red-400 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Top Concerns
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {sentiment.key_insights.top_issues.map((issue) => (
+                      <Badge 
+                        key={issue} 
+                        variant="outline" 
+                        className="border-red-200 text-red-800 dark:text-red-300 capitalize"
+                      >
+                        {issue}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Location Info */}
+              <div className="pt-4 border-t">
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Location Details
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {sentiment.key_insights.neighborhood && (
+                    <div>
+                      <span className="text-muted-foreground">Neighborhood: </span>
+                      <span className="font-semibold">{sentiment.key_insights.neighborhood}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-muted-foreground">Coordinates: </span>
+                    <span className="font-mono text-xs">
+                      {currentZone.location.latitude.toFixed(4)}, {currentZone.location.longitude.toFixed(4)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Category: </span>
+                    <span className="font-semibold capitalize">{sentiment.sentiment_category}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Priority: </span>
+                    <Badge variant={getPriorityColor(sentiment.key_insights.priority_level)} className="ml-1">
+                      {sentiment.key_insights.priority_level}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Source Details */}
+              {sentiment.source_details.reddit_bangalore && (
+                <div className="pt-4 border-t">
+                  <h4 className="text-sm font-semibold mb-3">Community Feedback Details</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {Math.round(sentiment.source_details.reddit_bangalore.positive_ratio * 100)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">Positive</div>
+                    </div>
+                    <div className="text-center p-3 bg-red-50 dark:bg-red-950 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">
+                        {Math.round(sentiment.source_details.reddit_bangalore.negative_ratio * 100)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">Negative</div>
+                    </div>
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold">
+                        {sentiment.source_details.reddit_bangalore.sample_size}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Posts</div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
         {/* Interpretation Panel */}
-        <Card className="shadow-lg animate-fade-in" style={{ animationDelay: "600ms" }}>
+        <Card className="shadow-lg animate-fade-in" style={{ animationDelay: "500ms" }}>
           <CardHeader>
-            <CardTitle className="font-heading">Insights & Recommendations</CardTitle>
+            <CardTitle className="font-heading">Analysis Summary</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="prose prose-sm max-w-none text-muted-foreground">
               <p className="mb-3">
-                <strong className="text-foreground">General Trends:</strong> Residents in {data.name} show {data.sentiment.positive > 60 ? "strong" : data.sentiment.positive > 40 ? "moderate" : "mixed"} satisfaction with their neighborhood. 
-                The overall livability score of {data.overallScore}/100 reflects a balance of strengths and areas for improvement.
+                <strong className="text-foreground">Sentiment Overview:</strong> This zone shows a{" "}
+                <span className={`font-semibold ${getSentimentColor(sentiment.sentiment_score)}`}>
+                  {sentiment.sentiment_category}
+                </span>{" "}
+                sentiment ({sentiment.sentiment_score.toFixed(3)}) based on{" "}
+                {sentiment.sources_used.filter(s => s !== 'accident_safety').length} data source
+                {sentiment.sources_used.filter(s => s !== 'accident_safety').length > 1 ? 's' : ''}. 
+                {" "}
               </p>
-              <p className="mb-3">
-                <strong className="text-foreground">What Residents Value:</strong> The community consistently highlights {data.positives.slice(0, 3).join(", ")} as key positive attributes. 
-                These strengths should be preserved and enhanced in future development plans.
-              </p>
+              
+              {sentiment.key_insights.top_issues.length > 0 && (
+                <p className="mb-3">
+                  <strong className="text-foreground">Key Concerns:</strong> Residents and data indicate primary issues with{" "}
+                  {sentiment.key_insights.top_issues.slice(0, 3).join(", ")}. These areas require attention for improving livability.
+                </p>
+              )}
+
               <p>
-                <strong className="text-foreground">Priority Improvements:</strong> Addressing concerns around {data.concerns.slice(0, 2).join(" and ")} could significantly boost resident satisfaction 
-                and overall livability scores. Investment in these areas is recommended for near-term planning cycles.
+                <strong className="text-foreground">Data Quality:</strong> This analysis has{" "}
+                <span className="font-semibold capitalize">{sentiment.data_quality}</span> confidence.
+                {sentiment.data_quality === 'high' && " The presence of real community feedback provides strong insights for decision-making."}
+                {sentiment.data_quality === 'low' && " Model-based estimates provide directional guidance; consider supplementing with additional data collection."}
               </p>
             </div>
           </CardContent>
         </Card>
+
+        {/* Disclaimer */}
+        <div className="mt-6 p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+          <strong>Data Sources:</strong> This analysis integrates community feedback from social media 
+          and urban planning indicators. Sentiment scores reflect public perception and zone characteristics 
+          to support data-driven urban development decisions.
+        </div>
       </div>
     </div>
   );
 };
 
-const cn = (...classes: (string | undefined)[]) => classes.filter(Boolean).join(" ");
-
 export default Livability;
+        

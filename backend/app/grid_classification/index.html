@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Bengaluru Polycentric Zones</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { width: 100vw; height: 100vh; }
+    .legend {
+      background: white;
+      padding: 10px;
+      line-height: 18px;
+      color: #333;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+    .legend i {
+      width: 18px;
+      height: 18px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body>
+<div id="map"></div>
+
+<script>
+  // 1️⃣ Create map centered on Bengaluru
+  const map = L.map('map').setView([12.9716, 77.5946], 11);
+
+  // 2️⃣ Add OpenStreetMap base layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // 3️⃣ Color function for zones
+  function getColor(zone) {
+    return zone === 'Commercial'  ? '#e74c3c' :
+           zone === 'Balanced'    ? '#f1c40f' :
+           zone === 'Opportunity' ? '#2ecc71' :
+                                    '#cccccc';
+  }
+
+  // 4️⃣ Style for grid polygons
+  function style(feature) {
+    return {
+      fillColor: getColor(feature.properties.zone_type),
+      weight: 0.8,
+      opacity: 1,
+      color: '#444',
+      fillOpacity: 0.6
+    };
+  }
+
+  // 5️⃣ Load GeoJSON and add to map
+  fetch('blr_polycentric.geojson')
+    .then(response => response.json())
+    .then(data => {
+      const gridLayer = L.geoJSON(data, {
+        style: style,
+        onEachFeature: function (feature, layer) {
+          layer.bindPopup(
+            `<b>Grid ID:</b> ${feature.properties.grid_id}<br>
+             <b>Zone Type:</b> ${feature.properties.zone_type}`
+          );
+        }
+      }).addTo(map);
+
+      map.fitBounds(gridLayer.getBounds());
+    });
+
+  // 6️⃣ Add legend
+  const legend = L.control({ position: 'bottomright' });
+
+  legend.onAdd = function () {
+    const div = L.DomUtil.create('div', 'legend');
+    const zones = ['Commercial', 'Balanced', 'Opportunity'];
+
+    div.innerHTML += '<b>Zone Type</b><br>';
+    zones.forEach(zone => {
+      div.innerHTML +=
+        `<i style="background:${getColor(zone)}"></i> ${zone}<br>`;
+    });
+
+    return div;
+  };
+
+  legend.addTo(map);
+</script>
+
+</body>
+</html>

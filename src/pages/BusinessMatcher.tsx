@@ -36,6 +36,8 @@ type BackendResult = {
   detailed_explanation: string;
 
   signals: Signal[];
+  top_skills: string[];
+  top_interests: string[];
 };
 
 /* =========================
@@ -82,12 +84,10 @@ function ZoneMap({
   lat,
   lon,
   expanded,
-  zoneType,
 }: {
   lat: number;
   lon: number;
   expanded: boolean;
-  zoneType: string;
 }) {
   const size = expanded ? "640x360" : "260x260";
   const src = `https://maps.wikimedia.org/img/osm-intl,11,${lat},${lon},${size}.png`;
@@ -101,9 +101,7 @@ function ZoneMap({
       <img
         src={src}
         alt="Zone map"
-        className={`w-full h-full object-cover rounded-lg border-4 ${zoneBorder(
-          zoneType
-        )}`}
+        className="w-full h-full object-cover rounded-lg border-4 border-gray-300"
       />
     </div>
   );
@@ -135,7 +133,7 @@ function HorizontalComparisonChart({
             <div key={z.zone_id ?? z.zone_lat} className="space-y-1">
               <div className="flex justify-between text-sm">
                 <span className="font-medium">
-                  {z.zone_label ?? "Zone"}
+                  {z.region_name ?? "Zone"}
                 </span>
                 <span className="text-muted-foreground">
                   {level}
@@ -247,17 +245,16 @@ export default function BusinessMatcher() {
                       lat={r.zone_lat}
                       lon={r.zone_lon}
                       expanded={isOpen}
-                      zoneType={r.zone_type}
                     />
 
                     <div className="flex-1">
                       <CardTitle className="text-2xl flex items-center gap-2">
                         <MapPinned className="w-5 h-5" />
-                        {r.zone_label ?? "Unnamed Zone"}
+                        {r.region_name ?? "Unnamed Zone"}
                       </CardTitle>
 
                       <CardDescription className="text-base mt-1">
-                        {r.region_name} · {r.zone_code} · {r.zone_id}
+                        {r.zone_code} · {r.zone_id}
                       </CardDescription>
 
                       <div className="mt-4 italic border-l-4 pl-4 border-teal">
@@ -265,11 +262,49 @@ export default function BusinessMatcher() {
                       </div>
 
                       <div className="mt-4 flex gap-2 flex-wrap">
-                        <Badge variant="outline">{r.zone_type}</Badge>
                         <Badge variant="outline">
                           Confidence: {r.confidence}
                         </Badge>
                       </div>
+
+                      {/* SKILLS & INTERESTS */}
+                      {r.top_skills && r.top_skills.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium text-gray-700 mb-2">
+                            Key Skills Available:
+                          </p>
+                          <div className="flex gap-2 flex-wrap">
+                            {r.top_skills.map((skill, i) => (
+                              <Badge
+                                key={i}
+                                variant="secondary"
+                                className="bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              >
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {r.top_interests && r.top_interests.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-sm font-medium text-gray-700 mb-2">
+                            Local Demand Signals:
+                          </p>
+                          <div className="flex gap-2 flex-wrap">
+                            {r.top_interests.map((interest, i) => (
+                              <Badge
+                                key={i}
+                                variant="secondary"
+                                className="bg-green-100 text-green-700 hover:bg-green-200"
+                              >
+                                {interest}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="text-right w-32">
